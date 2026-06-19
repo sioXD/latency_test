@@ -5,10 +5,12 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 HERE = Path(__file__).resolve().parent
 
 app = FastAPI(title="Latency Test")
+app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
 
 
 @app.get("/")

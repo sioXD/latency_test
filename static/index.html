@@ -1,413 +1,825 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Latency Test for HTTP requests">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<title>Latency Test</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; }
-  .container { max-width: 1100px; width: 100%; }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Latency Test for HTTP requests" />
+		<link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+		<title>Latency Test</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				background: #0d1117;
+				color: #c9d1d9;
+				font-family:
+					"Segoe UI",
+					system-ui,
+					-apple-system,
+					sans-serif;
+				display: flex;
+				justify-content: center;
+				padding: 20px;
+			}
+			.container {
+				max-width: 1100px;
+				width: 100%;
+			}
 
-  /* controls */
-  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; background: #161b22; padding: 16px 20px; border-radius: 10px; border: 1px solid #30363d; }
-  .controls label { font-size: 13px; color: #8b949e; white-space: nowrap; }
-  .controls input[type="text"] { flex: 1; min-width: 200px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
-  .controls input[type="text"]:focus { outline: none; border-color: #58a6ff; }
-  .controls .interval-group { display: flex; align-items: center; gap: 6px; }
-  .controls .interval-group input[type="range"] { width: 90px; accent-color: #58a6ff; }
-  .controls .interval-group span { font-size: 13px; color: #58a6ff; font-weight: 600; min-width: 32px; }
-  .btn { padding: 8px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
-  .btn-start { background: #238636; color: #fff; }
-  .btn-start:hover { background: #2ea043; }
-  .btn-start:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-stop { background: #da3633; color: #fff; }
-  .btn-stop:hover { background: #f85149; }
+			/* controls */
+			.controls {
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+				margin-bottom: 16px;
+				background: #161b22;
+				padding: 16px 20px;
+				border-radius: 10px;
+				border: 1px solid #30363d;
+			}
+			.controls label {
+				font-size: 13px;
+				color: #8b949e;
+				white-space: nowrap;
+			}
+			.controls input[type="text"] {
+				flex: 1;
+				min-width: 200px;
+				background: #0d1117;
+				border: 1px solid #30363d;
+				color: #c9d1d9;
+				padding: 8px 12px;
+				border-radius: 6px;
+				font-size: 14px;
+			}
+			.controls input[type="text"]:focus {
+				outline: none;
+				border-color: #58a6ff;
+			}
+			.controls .interval-group {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.controls .interval-group input[type="range"] {
+				width: 90px;
+				accent-color: #58a6ff;
+			}
+			.controls .interval-group span {
+				font-size: 13px;
+				color: #58a6ff;
+				font-weight: 600;
+				min-width: 32px;
+			}
+			.btn {
+				padding: 8px 20px;
+				border: none;
+				border-radius: 6px;
+				font-size: 14px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.15s;
+			}
+			.btn-start {
+				background: #238636;
+				color: #fff;
+			}
+			.btn-start:hover {
+				background: #2ea043;
+			}
+			.btn-start:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+			}
+			.btn-stop {
+				background: #da3633;
+				color: #fff;
+			}
+			.btn-stop:hover {
+				background: #f85149;
+			}
 
-  /* dashboard grid */
-  .dashboard { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+			/* dashboard grid */
+			.dashboard {
+				display: grid;
+				grid-template-columns: 1fr 280px;
+				gap: 16px;
+			}
 
-  /* chart */
-  .chart-wrap { background: #161b22; border-radius: 10px; border: 1px solid #30363d; padding: 16px; }
-  .chart-wrap canvas { display: block; width: 100%; height: 360px; border-radius: 6px; }
+			/* chart */
+			.chart-wrap {
+				background: #161b22;
+				border-radius: 10px;
+				border: 1px solid #30363d;
+				padding: 16px;
+			}
+			.chart-wrap canvas {
+				display: block;
+				width: 100%;
+				height: 360px;
+				border-radius: 6px;
+			}
+			.overview-wrap {
+				background: #161b22;
+				border-radius: 10px;
+				border: 1px solid #30363d;
+				padding: 12px 16px;
+				margin-top: 12px;
+			}
+			.overview-wrap canvas {
+				display: block;
+				width: 100%;
+				height: 80px;
+				border-radius: 4px;
+				cursor: crosshair;
+			}
 
-  /* sidebar stats */
-  .stats { display: flex; flex-direction: column; gap: 12px; }
-  .stat-card { background: #161b22; border-radius: 10px; border: 1px solid #30363d; padding: 16px; text-align: center; }
-  .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #8b949e; }
-  .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 4px; font-family: 'SF Mono', 'Consolas', 'DejaVu Sans Mono', monospace; font-variant-numeric: tabular-nums; min-width: 80px; }
-  .stat-card.current .value { font-size: 48px; }
-  .stat-card.current.green .value { color: #3fb950; }
-  .stat-card.current.red .value { color: #f85149; }
-  .stat-card.min .value { color: #58a6ff; }
-  .stat-card.max .value { color: #f85149; }
-  .stat-card.avg .value { color: #d29922; }
-  .stat-card.loss .value { color: #f85149; }
-  .stat-card.loss .value.ok { color: #3fb950; }
-  .stat-card.packets .value { color: #8b949e; font-size: 20px; }
+			/* sidebar stats */
+			.stats {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+			.stat-card {
+				background: #161b22;
+				border-radius: 10px;
+				border: 1px solid #30363d;
+				padding: 16px;
+				text-align: center;
+			}
+			.stat-card .label {
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+				color: #8b949e;
+			}
+			.stat-card .value {
+				font-size: 28px;
+				font-weight: 700;
+				margin-top: 4px;
+				font-family: "SF Mono", "Consolas", "DejaVu Sans Mono", monospace;
+				font-variant-numeric: tabular-nums;
+				min-width: 80px;
+			}
+			.stat-card.current .value {
+				font-size: 48px;
+			}
+			.stat-card.current.green .value {
+				color: #3fb950;
+			}
+			.stat-card.current.red .value {
+				color: #f85149;
+			}
+			.stat-card.min .value {
+				color: #58a6ff;
+			}
+			.stat-card.max .value {
+				color: #f85149;
+			}
+			.stat-card.avg .value {
+				color: #d29922;
+			}
+			.stat-card.loss .value {
+				color: #f85149;
+			}
+			.stat-card.loss .value.ok {
+				color: #3fb950;
+			}
+			.stat-card.packets .value {
+				color: #8b949e;
+				font-size: 20px;
+			}
 
-  .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-  .status-indicator.idle { background: #8b949e; }
-  .status-indicator.running { background: #3fb950; box-shadow: 0 0 8px #3fb95066; animation: pulse 1.5s ease-in-out infinite; }
-  .status-indicator.error { background: #f85149; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+			.status-indicator {
+				display: inline-block;
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				margin-right: 6px;
+				vertical-align: middle;
+			}
+			.status-indicator.idle {
+				background: #8b949e;
+			}
+			.status-indicator.running {
+				background: #3fb950;
+				box-shadow: 0 0 8px #3fb95066;
+				animation: pulse 1.5s ease-in-out infinite;
+			}
+			.status-indicator.error {
+				background: #f85149;
+			}
+			@keyframes pulse {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.5;
+				}
+			}
 
-  .status-text { font-size: 13px; color: #8b949e; }
+			.status-text {
+				font-size: 13px;
+				color: #8b949e;
+			}
 
-  .info-bar { margin-top: 16px; display: flex; gap: 24px; align-items: center; justify-content: center; padding: 12px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; }
-  .info-bar .legend { display: flex; align-items: center; gap: 16px; font-size: 12px; }
-  .info-bar .legend span { display: flex; align-items: center; gap: 4px; }
-  .info-bar .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+			.info-bar {
+				margin-top: 16px;
+				display: flex;
+				gap: 24px;
+				align-items: center;
+				justify-content: center;
+				padding: 12px;
+				background: #161b22;
+				border-radius: 8px;
+				border: 1px solid #30363d;
+			}
+			.info-bar .legend {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				font-size: 12px;
+			}
+			.info-bar .legend span {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+			.info-bar .legend .dot {
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				display: inline-block;
+			}
 
-  @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="controls">
-    <label for="target">Ziel‑URL</label>
-    <input type="text" id="target" value="http://localhost:8000" placeholder="z.B. 1.1.1.1 oder https://example.com">
-    <div class="interval-group">
-      <label for="interval">Intervall</label>
-      <input type="range" id="interval" min="5" max="500" step="5" value="10">
-      <span id="intervalLabel">10ms</span>
-    </div>
-    <div class="interval-group">
-      <label for="thresholdInput">Schwelle</label>
-      <input type="number" id="thresholdInput" min="1" max="9999" value="50" style="width:64px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:6px 8px;border-radius:6px;font-size:14px;font-family:'SF Mono',monospace;">
-      <span>ms</span>
-    </div>
-    <button class="btn btn-start" id="btnStart">Start</button>
-    <button class="btn btn-stop" id="btnStop" style="display:none">Stop</button>
-    <span class="status-text"><span class="status-indicator idle" id="statusDot"></span><span id="statusLabel">Bereit</span></span>
-  </div>
+			@media (max-width: 800px) {
+				.dashboard {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="controls">
+				<label for="target">Ziel‑URL</label>
+				<input
+					type="text"
+					id="target"
+					value="http://localhost:8000"
+					placeholder="z.B. 1.1.1.1 oder https://example.com"
+				/>
+				<div class="interval-group">
+					<label for="interval">Intervall</label>
+					<input type="range" id="interval" min="5" max="500" step="5" value="10" />
+					<span id="intervalLabel">10ms</span>
+				</div>
+				<div class="interval-group">
+					<label for="thresholdInput">Schwelle</label>
+					<input
+						type="number"
+						id="thresholdInput"
+						min="1"
+						max="9999"
+						value="50"
+						style="
+							width: 64px;
+							background: #0d1117;
+							border: 1px solid #30363d;
+							color: #c9d1d9;
+							padding: 6px 8px;
+							border-radius: 6px;
+							font-size: 14px;
+							font-family: &quot;SF Mono&quot;, monospace;
+						"
+					/>
+					<span>ms</span>
+				</div>
+				<button class="btn btn-start" id="btnStart">Start</button>
+				<button class="btn btn-stop" id="btnStop" style="display: none">Stop</button>
+				<span class="status-text"
+					><span class="status-indicator idle" id="statusDot"></span
+					><span id="statusLabel">Bereit</span></span
+				>
+			</div>
 
-  <div class="dashboard">
-    <div class="chart-wrap">
-      <canvas id="chart"></canvas>
-    </div>
-    <div class="stats">
-      <div class="stat-card current green" id="cardCurrent">
-        <div class="label">Aktuelle Latenz</div>
-        <div class="value" id="valCurrent">—</div>
-      </div>
-      <div class="stat-card min">
-        <div class="label">Minimum</div>
-        <div class="value" id="valMin">—</div>
-      </div>
-      <div class="stat-card max">
-        <div class="label">Maximum</div>
-        <div class="value" id="valMax">—</div>
-      </div>
-      <div class="stat-card avg">
-        <div class="label">Durchschnitt</div>
-        <div class="value" id="valAvg">—</div>
-      </div>
-      <div class="stat-card loss">
-        <div class="label">Fehler / Verlust</div>
-        <div class="value" id="valLoss">0%</div>
-      </div>
-      <div class="stat-card packets">
-        <div class="label">Gesendet</div>
-        <div class="value" id="valPackets">0</div>
-      </div>
-    </div>
-  </div>
+			<div class="dashboard">
+				<div class="chart-wrap">
+					<canvas id="chart"></canvas>
+				</div>
+				<div class="stats">
+					<div class="stat-card current green" id="cardCurrent">
+						<div class="label">Aktuelle Latenz</div>
+						<div class="value" id="valCurrent">—</div>
+					</div>
+					<div class="stat-card min">
+						<div class="label">Minimum</div>
+						<div class="value" id="valMin">—</div>
+					</div>
+					<div class="stat-card max">
+						<div class="label">Maximum</div>
+						<div class="value" id="valMax">—</div>
+					</div>
+					<div class="stat-card avg">
+						<div class="label">Durchschnitt</div>
+						<div class="value" id="valAvg">—</div>
+					</div>
+					<div class="stat-card loss">
+						<div class="label">Fehler / Verlust</div>
+						<div class="value" id="valLoss">0%</div>
+					</div>
+					<div class="stat-card packets">
+						<div class="label">Gesendet</div>
+						<div class="value" id="valPackets">0</div>
+					</div>
+				</div>
+			</div>
 
-  <div class="info-bar">
-    <div class="legend">
-      <span><span class="dot" style="background:#3fb950"></span> &lt; <span id="legendOk">50</span> ms</span>
-      <span><span class="dot" style="background:#f85149"></span> ≥ <span id="legendBad">50</span> ms</span>
-      <span><span class="dot" style="background:#d29922"></span> Schwelle (<span id="legendThreshold">50</span> ms)</span>
-    </div>
-    <span id="infoRate" style="font-size:12px;color:#8b949e"></span>
-  </div>
-</div>
+			<div class="overview-wrap">
+				<canvas id="overviewChart"></canvas>
+			</div>
 
-<script>
-let threshold = 50;
-const MAX_POINTS = 3000;
-const WINDOW_SECONDS = 15;
+			<div class="info-bar">
+				<div class="legend">
+					<span
+						><span class="dot" style="background: #3fb950"></span> &lt;
+						<span id="legendOk">50</span> ms</span
+					>
+					<span
+						><span class="dot" style="background: #f85149"></span> ≥ <span id="legendBad">50</span> ms</span
+					>
+					<span
+						><span class="dot" style="background: #d29922"></span> Schwelle (<span id="legendThreshold"
+							>50</span
+						>
+						ms)</span
+					>
+				</div>
+				<span id="infoRate" style="font-size: 12px; color: #8b949e"></span>
+			</div>
+		</div>
 
-const canvas = document.getElementById('chart');
-const ctx = canvas.getContext('2d');
+		<script>
+			let threshold = 50;
+			const MAX_POINTS = 3000;
+			const DEFAULT_WINDOW = 15;
 
-let points = [];
-let running = false;
-let ws = null;
-let animId = null;
+			const canvas = document.getElementById("chart");
+			const ctx = canvas.getContext("2d");
+			const overviewCanvas = document.getElementById("overviewChart");
+			const overCtx = overviewCanvas.getContext("2d");
 
-const targetInput = document.getElementById('target');
-const intervalInput = document.getElementById('interval');
-const intervalLabel = document.getElementById('intervalLabel');
-const thresholdInput = document.getElementById('thresholdInput');
-const btnStart = document.getElementById('btnStart');
-const btnStop = document.getElementById('btnStop');
-const statusDot = document.getElementById('statusDot');
-const statusLabel = document.getElementById('statusLabel');
-const valCurrent = document.getElementById('valCurrent');
-const valMin = document.getElementById('valMin');
-const valMax = document.getElementById('valMax');
-const valAvg = document.getElementById('valAvg');
-const valLoss = document.getElementById('valLoss');
-const valPackets = document.getElementById('valPackets');
-const cardCurrent = document.getElementById('cardCurrent');
-const infoRate = document.getElementById('infoRate');
+			let points = [];
+			let running = false;
+			let ws = null;
+			let animId = null;
 
-intervalInput.addEventListener('input', () => {
-  intervalLabel.textContent = intervalInput.value + 'ms';
-});
+			let selection = null;
+			let dragStart = null;
 
-thresholdInput.addEventListener('input', () => {
-  const v = parseInt(thresholdInput.value);
-  if (v > 0) threshold = v;
-  document.getElementById('legendOk').textContent = threshold;
-  document.getElementById('legendBad').textContent = threshold;
-  document.getElementById('legendThreshold').textContent = threshold;
-});
+			const targetInput = document.getElementById("target");
+			const intervalInput = document.getElementById("interval");
+			const intervalLabel = document.getElementById("intervalLabel");
+			const thresholdInput = document.getElementById("thresholdInput");
+			const btnStart = document.getElementById("btnStart");
+			const btnStop = document.getElementById("btnStop");
+			const statusDot = document.getElementById("statusDot");
+			const statusLabel = document.getElementById("statusLabel");
+			const valCurrent = document.getElementById("valCurrent");
+			const valMin = document.getElementById("valMin");
+			const valMax = document.getElementById("valMax");
+			const valAvg = document.getElementById("valAvg");
+			const valLoss = document.getElementById("valLoss");
+			const valPackets = document.getElementById("valPackets");
+			const cardCurrent = document.getElementById("cardCurrent");
+			const infoRate = document.getElementById("infoRate");
 
-let canvasW = 0, canvasH = 0;
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth;
-  const h = 360;
-  if (w === canvasW && h === canvasH && canvas.width === w * dpr) return { w, h };
-  canvasW = w; canvasH = h;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { w, h };
-}
+			intervalInput.addEventListener("input", () => {
+				intervalLabel.textContent = intervalInput.value + "ms";
+			});
 
-function getColor(latency) {
-  if (latency === null || latency === undefined) return '#8b949e';
-  const t = Math.min(latency / threshold, 1);
-  const r = Math.round(63 + (248 - 63) * t);
-  const g = Math.round(185 - (185 - 81) * t);
-  const b = Math.round(80 - (80 - 73) * t);
-  return `rgb(${r},${g},${b})`;
-}
+			thresholdInput.addEventListener("input", () => {
+				const v = parseInt(thresholdInput.value);
+				if (v > 0) threshold = v;
+				document.getElementById("legendOk").textContent = threshold;
+				document.getElementById("legendBad").textContent = threshold;
+				document.getElementById("legendThreshold").textContent = threshold;
+			});
 
-function drawChart() {
-  const { w, h } = resizeCanvas();
-  ctx.clearRect(0, 0, w, h);
+			let canvasW = 0,
+				canvasH = 0;
+			function resizeCanvas() {
+				const dpr = window.devicePixelRatio || 1;
+				const w = canvas.clientWidth;
+				const h = 360;
+				if (w === canvasW && h === canvasH && canvas.width === w * dpr) return { w, h };
+				canvasW = w;
+				canvasH = h;
+				canvas.width = w * dpr;
+				canvas.height = h * dpr;
+				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+				return { w, h };
+			}
 
-  const pad = { top: 16, bottom: 28, left: 48, right: 16 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
+			let overW = 0,
+				overH = 0;
+			function resizeOverview() {
+				const dpr = window.devicePixelRatio || 1;
+				const w = overviewCanvas.clientWidth;
+				const h = 80;
+				if (w === overW && h === overH && overviewCanvas.width === w * dpr) return { w, h };
+				overW = w;
+				overH = h;
+				overviewCanvas.width = w * dpr;
+				overviewCanvas.height = h * dpr;
+				overCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+				return { w, h };
+			}
 
-  if (points.length === 0) {
-    ctx.fillStyle = '#8b949e';
-    ctx.font = '14px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText('Warte auf Daten …', w / 2, h / 2);
-    return;
-  }
+			function getWindowBounds() {
+				if (points.length === 0) return null;
+				const now = points[points.length - 1].t;
+				if (selection) {
+					const s = selection;
+					return { start: Math.min(s.tStart, s.tEnd), end: Math.max(s.tStart, s.tEnd), now };
+				}
+				return { start: now - DEFAULT_WINDOW, end: now, now };
+			}
 
-  const now = points[points.length - 1].t;
-  const windowStart = now - WINDOW_SECONDS;
-  const visible = points.filter(p => p.t >= windowStart);
+			function getColor(latency) {
+				if (latency === null || latency === undefined) return "#8b949e";
+				const t = Math.min(latency / threshold, 1);
+				const r = Math.round(63 + (248 - 63) * t);
+				const g = Math.round(185 - (185 - 81) * t);
+				const b = Math.round(80 - (80 - 73) * t);
+				return `rgb(${r},${g},${b})`;
+			}
 
-  if (visible.length < 2) return;
+			function drawChart() {
+				const { w, h } = resizeCanvas();
+				ctx.clearRect(0, 0, w, h);
 
-  const latencies = visible.map(p => p.latency).filter(l => l !== null && l !== undefined);
-  const maxLat = latencies.length > 0 ? Math.max(threshold * 2, Math.ceil(Math.max(...latencies) / 10) * 10) : threshold * 2;
-  const scaleY = chartH / maxLat;
+				const pad = { top: 16, bottom: 28, left: 48, right: 16 };
+				const chartW = w - pad.left - pad.right;
+				const chartH = h - pad.top - pad.bottom;
 
-  // grid
-  ctx.strokeStyle = '#21262d';
-  ctx.lineWidth = 1;
-  for (let v = 0; v <= maxLat; v += Math.max(10, Math.round(maxLat / 5 / 10) * 10)) {
-    const y = pad.top + chartH - v * scaleY;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(pad.left + chartW, y);
-    ctx.stroke();
-    ctx.fillStyle = '#484f58';
-    ctx.font = '10px system-ui';
-    ctx.textAlign = 'right';
-    ctx.fillText(v + 'ms', pad.left - 6, y + 3);
-  }
+				if (points.length === 0) {
+					ctx.fillStyle = "#8b949e";
+					ctx.font = "14px system-ui";
+					ctx.textAlign = "center";
+					ctx.fillText("Warte auf Daten …", w / 2, h / 2);
+					return;
+				}
 
-  // threshold line
-  const thresholdY = pad.top + chartH - threshold * scaleY;
-  ctx.strokeStyle = '#d2992288';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath();
-  ctx.moveTo(pad.left, thresholdY);
-  ctx.lineTo(pad.left + chartW, thresholdY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#d29922';
-  ctx.font = '10px system-ui';
-  ctx.textAlign = 'left';
-  ctx.fillText(threshold + ' ms', pad.left + 4, thresholdY - 4);
+				const bounds = getWindowBounds();
+				if (!bounds) return;
+				const { start: windowStart, end: windowEnd, now } = bounds;
+				const visible = points.filter((p) => p.t >= windowStart && p.t <= windowEnd);
 
-  // line segments
-  const minT = visible[0].t;
-  const maxT = visible[visible.length - 1].t;
-  const rangeT = Math.max(maxT - minT, 0.1);
+				if (visible.length < 2) return;
 
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
+				const latencies = visible.map((p) => p.latency).filter((l) => l !== null && l !== undefined);
+				const maxLat =
+					latencies.length > 0
+						? Math.max(threshold * 2, Math.ceil(Math.max(...latencies) / 10) * 10)
+						: threshold * 2;
+				const scaleY = chartH / maxLat;
 
-  for (let i = 1; i < visible.length; i++) {
-    const prev = visible[i - 1];
-    const curr = visible[i];
-    if (prev.latency === null || curr.latency === null) continue;
+				// grid
+				ctx.strokeStyle = "#21262d";
+				ctx.lineWidth = 1;
+				for (let v = 0; v <= maxLat; v += Math.max(10, Math.round(maxLat / 5 / 10) * 10)) {
+					const y = pad.top + chartH - v * scaleY;
+					ctx.beginPath();
+					ctx.moveTo(pad.left, y);
+					ctx.lineTo(pad.left + chartW, y);
+					ctx.stroke();
+					ctx.fillStyle = "#484f58";
+					ctx.font = "10px system-ui";
+					ctx.textAlign = "right";
+					ctx.fillText(v + "ms", pad.left - 6, y + 3);
+				}
 
-    const x0 = pad.left + ((prev.t - minT) / rangeT) * chartW;
-    const x1 = pad.left + ((curr.t - minT) / rangeT) * chartW;
-    const y0 = pad.top + chartH - prev.latency * scaleY;
-    const y1 = pad.top + chartH - curr.latency * scaleY;
+				// threshold line
+				const thresholdY = pad.top + chartH - threshold * scaleY;
+				ctx.strokeStyle = "#d2992288";
+				ctx.lineWidth = 1.5;
+				ctx.setLineDash([4, 4]);
+				ctx.beginPath();
+				ctx.moveTo(pad.left, thresholdY);
+				ctx.lineTo(pad.left + chartW, thresholdY);
+				ctx.stroke();
+				ctx.setLineDash([]);
+				ctx.fillStyle = "#d29922";
+				ctx.font = "10px system-ui";
+				ctx.textAlign = "left";
+				ctx.fillText(threshold + " ms", pad.left + 4, thresholdY - 4);
 
-    const avgLat = (prev.latency + curr.latency) / 2;
-    ctx.strokeStyle = getColor(avgLat);
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.stroke();
-  }
+				// line segments
+				const minT = visible[0].t;
+				const maxT = visible[visible.length - 1].t;
+				const rangeT = Math.max(maxT - minT, 0.1);
 
-  // x-axis labels
-  ctx.fillStyle = '#484f58';
-  ctx.font = '10px system-ui';
-  ctx.textAlign = 'center';
-  for (let i = 0; i <= 5; i++) {
-    const t = now - (WINDOW_SECONDS / 5) * i;
-    const x = pad.left + chartW - (chartW / 5) * i;
-    ctx.fillText((t - now).toFixed(1) + 's', x, h - 4);
-  }
+				ctx.lineWidth = 2;
+				ctx.lineJoin = "round";
+				ctx.lineCap = "round";
 
-  // update rate info
-  const elapsed = maxT - minT;
-  const rate = elapsed > 0 ? (visible.length / elapsed).toFixed(0) : 0;
-  infoRate.textContent = `📊 ${visible.length} Datenpunkte · ~${rate}/s · Fenster ${WINDOW_SECONDS}s`;
-}
+				for (let i = 1; i < visible.length; i++) {
+					const prev = visible[i - 1];
+					const curr = visible[i];
+					if (prev.latency === null || curr.latency === null) continue;
 
-function updateStats() {
-  const latencies = points.map(p => p.latency).filter(l => l !== null && l !== undefined);
-  const errors = points.filter(p => p.latency === null).length;
-  const total = points.length;
+					const x0 = pad.left + ((prev.t - minT) / rangeT) * chartW;
+					const x1 = pad.left + ((curr.t - minT) / rangeT) * chartW;
+					const y0 = pad.top + chartH - prev.latency * scaleY;
+					const y1 = pad.top + chartH - curr.latency * scaleY;
 
-  const current = points.length > 0 ? points[points.length - 1] : null;
-  if (current && current.latency !== null) {
-    valCurrent.textContent = current.latency.toFixed(1) + ' ms';
-    cardCurrent.className = 'stat-card current ' + (current.latency >= threshold ? 'red' : 'green');
-  } else if (current) {
-    valCurrent.textContent = '❌ Fehler';
-    cardCurrent.className = 'stat-card current red';
-  }
+					const avgLat = (prev.latency + curr.latency) / 2;
+					ctx.strokeStyle = getColor(avgLat);
+					ctx.beginPath();
+					ctx.moveTo(x0, y0);
+					ctx.lineTo(x1, y1);
+					ctx.stroke();
+				}
 
-  if (latencies.length > 0) {
-    valMin.textContent = Math.min(...latencies).toFixed(1) + ' ms';
-    valMax.textContent = Math.max(...latencies).toFixed(1) + ' ms';
-    const avg = latencies.reduce((a, b) => a + b, 0) / latencies.length;
-    valAvg.textContent = avg.toFixed(1) + ' ms';
-  }
+				// x-axis labels
+				const windowLen = windowEnd - windowStart;
+				ctx.fillStyle = "#484f58";
+				ctx.font = "10px system-ui";
+				ctx.textAlign = "center";
+				for (let i = 0; i <= 5; i++) {
+					const t = windowStart + (windowLen / 5) * i;
+					const x = pad.left + (chartW / 5) * i;
+					ctx.fillText((t - now).toFixed(1) + "s", x, h - 4);
+				}
 
-  const lossPct = total > 0 ? (errors / total * 100) : 0;
-  valLoss.textContent = lossPct.toFixed(1) + '%';
-  valLoss.className = 'value' + (lossPct > 0 ? '' : ' ok');
+				// update rate info
+				const elapsed = maxT - minT;
+				const rate = elapsed > 0 ? (visible.length / elapsed).toFixed(0) : 0;
+				const label = selection ? "Auswahl" : "Letzte " + DEFAULT_WINDOW + "s";
+				infoRate.textContent = `📊 ${visible.length} Datenpunkte · ~${rate}/s · ${label}`;
+			}
 
-  valPackets.textContent = total;
-}
+			function updateStats() {
+				const latencies = points.map((p) => p.latency).filter((l) => l !== null && l !== undefined);
+				const errors = points.filter((p) => p.latency === null).length;
+				const total = points.length;
 
-function setStatus(state, label) {
-  statusDot.className = 'status-indicator ' + state;
-  statusLabel.textContent = label;
-}
+				const current = points.length > 0 ? points[points.length - 1] : null;
+				if (current && current.latency !== null) {
+					valCurrent.textContent = current.latency.toFixed(1) + " ms";
+					cardCurrent.className = "stat-card current " + (current.latency >= threshold ? "red" : "green");
+				} else if (current) {
+					valCurrent.textContent = "❌ Fehler";
+					cardCurrent.className = "stat-card current red";
+				}
 
-function setRunning(active) {
-  running = active;
-  btnStart.style.display = active ? 'none' : '';
-  btnStop.style.display = active ? '' : 'none';
-  targetInput.disabled = active;
-  intervalInput.disabled = active;
-  thresholdInput.disabled = active;
-}
+				if (latencies.length > 0) {
+					valMin.textContent = Math.min(...latencies).toFixed(1) + " ms";
+					valMax.textContent = Math.max(...latencies).toFixed(1) + " ms";
+					const avg = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+					valAvg.textContent = avg.toFixed(1) + " ms";
+				}
 
-function connect() {
-  if (ws) ws.close();
-  ws = new WebSocket('ws://' + location.host + '/ws');
+				const lossPct = total > 0 ? (errors / total) * 100 : 0;
+				valLoss.textContent = lossPct.toFixed(1) + "%";
+				valLoss.className = "value" + (lossPct > 0 ? "" : " ok");
 
-  ws.onopen = () => {
-    setStatus('idle', 'Verbunden');
-  };
+				valPackets.textContent = total;
+			}
 
-  ws.onmessage = (e) => {
-    const data = JSON.parse(e.data);
+			function setStatus(state, label) {
+				statusDot.className = "status-indicator " + state;
+				statusLabel.textContent = label;
+			}
 
-    if (data.status === 'started') {
-      setStatus('running', 'Läuft → ' + data.target);
-      setRunning(true);
-      points = [];
-      return;
-    }
-    if (data.status === 'stopped') {
-      setStatus('idle', 'Gestoppt');
-      setRunning(false);
-      return;
-    }
-    if (data.error) {
-      setStatus('error', data.error);
-      return;
-    }
-    if (data.pong) return;
+			function setRunning(active) {
+				running = active;
+				btnStart.style.display = active ? "none" : "";
+				btnStop.style.display = active ? "" : "none";
+				targetInput.disabled = active;
+				intervalInput.disabled = active;
+				thresholdInput.disabled = active;
+			}
 
-    // data point
-    points.push({ t: data.t, latency: data.latency });
-    if (points.length > MAX_POINTS) {
-      points.splice(0, points.length - MAX_POINTS);
-    }
-    updateStats();
-  };
+			function drawOverview() {
+				const { w, h } = resizeOverview();
+				overCtx.clearRect(0, 0, w, h);
 
-  ws.onclose = () => {
-    if (running) setStatus('error', 'Verbindung getrennt');
-    else setStatus('idle', 'Getrennt');
-    setRunning(false);
-  };
+				if (points.length < 2) {
+					overCtx.fillStyle = "#8b949e";
+					overCtx.font = "12px system-ui";
+					overCtx.textAlign = "center";
+					overCtx.fillText("Warte auf Daten …", w / 2, h / 2 + 4);
+					return;
+				}
 
-  ws.onerror = () => {
-    setStatus('error', 'WebSocket Fehler');
-  };
-}
+				const tMin = points[0].t;
+				const tMax = points[points.length - 1].t;
+				const rangeT = Math.max(tMax - tMin, 0.1);
+				const padL = 4,
+					padR = 4,
+					padT = 6,
+					padB = 8;
+				const chartW = w - padL - padR;
+				const chartH = h - padT - padB;
 
-btnStart.addEventListener('click', () => {
-  const target = targetInput.value.trim();
-  if (!target) { alert('Bitte Ziel-URL eingeben'); return; }
-  if (!ws || ws.readyState !== WebSocket.OPEN) connect();
-  const interval = parseInt(intervalInput.value) || 10;
-  ws.send(JSON.stringify({ action: 'start', target, interval_ms: interval }));
-});
+				const latencies = points.map((p) => p.latency).filter((l) => l !== null);
+				const maxLat =
+					latencies.length > 0 ? Math.max(threshold, Math.ceil(Math.max(...latencies))) + 5 : threshold + 5;
+				const scaleY = chartH / maxLat;
 
-btnStop.addEventListener('click', () => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ action: 'stop' }));
-  }
-});
+				// background fill
+				overCtx.fillStyle = "#0d1117";
+				overCtx.fillRect(padL, padT, chartW, chartH);
 
-// animation loop
-function tick() {
-  drawChart();
-  animId = requestAnimationFrame(tick);
-}
+				// threshold line
+				const thY = padT + chartH - threshold * scaleY;
+				overCtx.strokeStyle = "#d2992244";
+				overCtx.lineWidth = 1;
+				overCtx.setLineDash([3, 3]);
+				overCtx.beginPath();
+				overCtx.moveTo(padL, thY);
+				overCtx.lineTo(padL + chartW, thY);
+				overCtx.stroke();
+				overCtx.setLineDash([]);
 
-connect();
-tick();
+				// data line
+				overCtx.lineWidth = 1.5;
+				overCtx.lineJoin = "round";
+				for (let i = 1; i < points.length; i++) {
+					const prev = points[i - 1];
+					const curr = points[i];
+					if (prev.latency === null || curr.latency === null) continue;
+					const x0 = padL + ((prev.t - tMin) / rangeT) * chartW;
+					const x1 = padL + ((curr.t - tMin) / rangeT) * chartW;
+					const y0 = padT + chartH - prev.latency * scaleY;
+					const y1 = padT + chartH - curr.latency * scaleY;
+					overCtx.strokeStyle = getColor((prev.latency + curr.latency) / 2);
+					overCtx.beginPath();
+					overCtx.moveTo(x0, y0);
+					overCtx.lineTo(x1, y1);
+					overCtx.stroke();
+				}
 
-// sync legend with initial threshold value
-threshold = parseInt(thresholdInput.value) || 50;
-document.getElementById('legendOk').textContent = threshold;
-document.getElementById('legendBad').textContent = threshold;
-document.getElementById('legendThreshold').textContent = threshold;
+				// selection / viewport highlight
+				const bounds = getWindowBounds();
+				if (bounds) {
+					const selStart = Math.max(bounds.start, tMin);
+					const selEnd = Math.min(bounds.end, tMax);
+					const sx = padL + ((selStart - tMin) / rangeT) * chartW;
+					const sw = ((selEnd - selStart) / rangeT) * chartW;
+					overCtx.fillStyle = "rgba(88,166,255,0.12)";
+					overCtx.fillRect(sx, padT, sw, chartH);
+					overCtx.strokeStyle = "rgba(88,166,255,0.5)";
+					overCtx.lineWidth = 1.5;
+					overCtx.strokeRect(sx, padT, sw, chartH);
+				}
+			}
 
-window.addEventListener('resize', () => {});
-</script>
-</body>
+			function overviewPosToTime(e) {
+				const rect = overviewCanvas.getBoundingClientRect();
+				const x = e.clientX - rect.left;
+				if (points.length < 2) return null;
+				const tMin = points[0].t;
+				const tMax = points[points.length - 1].t;
+				const rangeT = tMax - tMin;
+				const padL = 4,
+					padR = 4;
+				const chartW = (overviewCanvas.clientWidth || rect.width) - padL - padR;
+				return tMin + ((x - padL) / chartW) * rangeT;
+			}
+
+			overviewCanvas.addEventListener("mousedown", (e) => {
+				const t = overviewPosToTime(e);
+				if (t === null) return;
+				dragStart = t;
+				selection = { tStart: t, tEnd: t };
+			});
+
+			overviewCanvas.addEventListener("mousemove", (e) => {
+				if (dragStart === null) return;
+				const t = overviewPosToTime(e);
+				if (t === null) return;
+				if (selection) selection.tEnd = t;
+			});
+
+			overviewCanvas.addEventListener("mouseup", () => {
+				if (dragStart === null) return;
+				if (selection) {
+					const s = Math.min(selection.tStart, selection.tEnd);
+					const e = Math.max(selection.tStart, selection.tEnd);
+					if (e - s < 0.2) {
+						selection = null;
+					} else {
+						selection = { tStart: s, tEnd: e };
+					}
+				}
+				dragStart = null;
+			});
+
+			overviewCanvas.addEventListener("mouseleave", () => {
+				if (dragStart !== null) {
+					if (selection) {
+						const s = Math.min(selection.tStart, selection.tEnd);
+						const e = Math.max(selection.tStart, selection.tEnd);
+						if (e - s < 0.2) selection = null;
+					}
+					dragStart = null;
+				}
+			});
+
+			overviewCanvas.addEventListener("dblclick", () => {
+				selection = null;
+				dragStart = null;
+			});
+
+			function connect() {
+				if (ws) ws.close();
+				ws = new WebSocket("ws://" + location.host + "/ws");
+
+				ws.onopen = () => {
+					setStatus("idle", "Verbunden");
+				};
+
+				ws.onmessage = (e) => {
+					const data = JSON.parse(e.data);
+
+					if (data.status === "started") {
+						setStatus("running", "Läuft → " + data.target);
+						setRunning(true);
+						points = [];
+						return;
+					}
+					if (data.status === "stopped") {
+						setStatus("idle", "Gestoppt");
+						setRunning(false);
+						return;
+					}
+					if (data.error) {
+						setStatus("error", data.error);
+						return;
+					}
+					if (data.pong) return;
+
+					// data point
+					points.push({ t: data.t, latency: data.latency });
+					if (points.length > MAX_POINTS) {
+						points.splice(0, points.length - MAX_POINTS);
+					}
+					updateStats();
+				};
+
+				ws.onclose = () => {
+					if (running) setStatus("error", "Verbindung getrennt");
+					else setStatus("idle", "Getrennt");
+					setRunning(false);
+				};
+
+				ws.onerror = () => {
+					setStatus("error", "WebSocket Fehler");
+				};
+			}
+
+			btnStart.addEventListener("click", () => {
+				const target = targetInput.value.trim();
+				if (!target) {
+					alert("Bitte Ziel-URL eingeben");
+					return;
+				}
+				if (!ws || ws.readyState !== WebSocket.OPEN) connect();
+				const interval = parseInt(intervalInput.value) || 10;
+				ws.send(JSON.stringify({ action: "start", target, interval_ms: interval }));
+			});
+
+			btnStop.addEventListener("click", () => {
+				if (ws && ws.readyState === WebSocket.OPEN) {
+					ws.send(JSON.stringify({ action: "stop" }));
+				}
+			});
+
+			// animation loop
+			function tick() {
+				drawChart();
+				drawOverview();
+				animId = requestAnimationFrame(tick);
+			}
+
+			connect();
+			tick();
+
+			// sync legend with initial threshold value
+			threshold = parseInt(thresholdInput.value) || 50;
+			document.getElementById("legendOk").textContent = threshold;
+			document.getElementById("legendBad").textContent = threshold;
+			document.getElementById("legendThreshold").textContent = threshold;
+
+			window.addEventListener("resize", () => {});
+		</script>
+	</body>
 </html>
