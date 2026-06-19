@@ -399,9 +399,27 @@
 			const cardCurrent = document.getElementById("cardCurrent");
 			const infoRate = document.getElementById("infoRate");
 
+			function saveSettings() {
+				localStorage.setItem("latencyTest:target", targetInput.value);
+				localStorage.setItem("latencyTest:interval", intervalInput.value);
+				localStorage.setItem("latencyTest:threshold", thresholdInput.value);
+			}
+
+			function loadSettings() {
+				const t = localStorage.getItem("latencyTest:target");
+				if (t !== null) targetInput.value = t;
+				const i = localStorage.getItem("latencyTest:interval");
+				if (i !== null) { intervalInput.value = i; intervalLabel.textContent = i + "ms"; }
+				const th = localStorage.getItem("latencyTest:threshold");
+				if (th !== null) thresholdInput.value = th;
+			}
+
 			intervalInput.addEventListener("input", () => {
 				intervalLabel.textContent = intervalInput.value + "ms";
+				saveSettings();
 			});
+
+			targetInput.addEventListener("change", saveSettings);
 
 			thresholdInput.addEventListener("input", () => {
 				const v = parseInt(thresholdInput.value);
@@ -409,6 +427,7 @@
 				document.getElementById("legendOk").textContent = threshold;
 				document.getElementById("legendBad").textContent = threshold;
 				document.getElementById("legendThreshold").textContent = threshold;
+				saveSettings();
 			});
 
 			let canvasW = 0,
@@ -810,10 +829,12 @@
 				animId = requestAnimationFrame(tick);
 			}
 
+			loadSettings();
+
 			connect();
 			tick();
 
-			// sync legend with initial threshold value
+			// sync legend with threshold value
 			threshold = parseInt(thresholdInput.value) || 50;
 			document.getElementById("legendOk").textContent = threshold;
 			document.getElementById("legendBad").textContent = threshold;
