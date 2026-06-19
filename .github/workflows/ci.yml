@@ -40,7 +40,7 @@ jobs:
 
                   curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:8000/
 
-                  python3 -c "
+                  uv run python3 -c "
                   import asyncio, json, websockets
                   async def test():
                       async with websockets.connect('ws://localhost:8000/ws') as ws:
