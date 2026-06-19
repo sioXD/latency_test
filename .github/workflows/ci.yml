@@ -1,0 +1,59 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+
+            - name: Install dependencies
+              run: uv sync
+
+            - name: Lint with pylint
+              run: uv run pylint main.py
+
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+
+            - name: Install dependencies
+              run: uv sync
+
+            - name: Start server and run smoke test
+              run: |
+                  uv run python main.py &
+                  SERVER_PID=$!
+                  sleep 2
+
+                  curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:8000/
+
+                  python3 -c "
+                  import asyncio, json, websockets
+                  async def test():
+                      async with websockets.connect('ws://localhost:8000/ws') as ws:
+                          await ws.send(json.dumps({'action': 'start', 'target': 'http://localhost:8000', 'interval_ms': 100}))
+                          r = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
+                          assert r['status'] == 'started'
+                          msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
+                          assert 'latency' in msg
+                          await ws.send(json.dumps({'action': 'stop'}))
+                          r = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
+                          assert r['status'] == 'stopped'
+                      print('Smoke test passed')
+                  asyncio.run(test())
+                  "
+
+                  kill $SERVER_PID 2>/dev/null
