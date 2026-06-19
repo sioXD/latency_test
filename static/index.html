@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -267,20 +267,20 @@
 	<body>
 		<div class="container">
 			<div class="controls">
-				<label for="target">Ziel‑URL</label>
+				<label for="target">Target URL</label>
 				<input
 					type="text"
 					id="target"
 					value="http://localhost:8000"
-					placeholder="z.B. 1.1.1.1 oder https://example.com"
+					placeholder="e.g. 1.1.1.1 or https://example.com"
 				/>
 				<div class="interval-group">
-					<label for="interval">Intervall</label>
+					<label for="interval">Interval</label>
 					<input type="range" id="interval" min="5" max="500" step="5" value="10" />
 					<span id="intervalLabel">10ms</span>
 				</div>
 				<div class="interval-group">
-					<label for="thresholdInput">Schwelle</label>
+					<label for="thresholdInput">Threshold</label>
 					<input
 						type="number"
 						id="thresholdInput"
@@ -303,8 +303,7 @@
 				<button class="btn btn-start" id="btnStart">Start</button>
 				<button class="btn btn-stop" id="btnStop" style="display: none">Stop</button>
 				<span class="status-text"
-					><span class="status-indicator idle" id="statusDot"></span
-					><span id="statusLabel">Bereit</span></span
+					><span class="status-indicator idle" id="statusDot"></span><span id="statusLabel">Ready</span></span
 				>
 			</div>
 
@@ -314,7 +313,7 @@
 				</div>
 				<div class="stats">
 					<div class="stat-card current green" id="cardCurrent">
-						<div class="label">Aktuelle Latenz</div>
+						<div class="label">Current Latency</div>
 						<div class="value" id="valCurrent">—</div>
 					</div>
 					<div class="stat-card min">
@@ -326,15 +325,15 @@
 						<div class="value" id="valMax">—</div>
 					</div>
 					<div class="stat-card avg">
-						<div class="label">Durchschnitt</div>
+						<div class="label">Average</div>
 						<div class="value" id="valAvg">—</div>
 					</div>
 					<div class="stat-card loss">
-						<div class="label">Fehler / Verlust</div>
+						<div class="label">Errors / Loss</div>
 						<div class="value" id="valLoss">0%</div>
 					</div>
 					<div class="stat-card packets">
-						<div class="label">Gesendet</div>
+						<div class="label">Sent</div>
 						<div class="value" id="valPackets">0</div>
 					</div>
 				</div>
@@ -353,8 +352,8 @@
 					<span
 						><span class="dot" style="background: #f85149"></span> ≥ <span id="legendBad">50</span> ms</span
 					>
-					<span
-						><span class="dot" style="background: #d29922"></span> Schwelle (<span id="legendThreshold"
+					<span>
+						<span class="dot" style="background: #d29922"></span> Threshold (<span id="legendThreshold"
 							>50</span
 						>
 						ms)</span
@@ -409,7 +408,10 @@
 				const t = localStorage.getItem("latencyTest:target");
 				if (t !== null) targetInput.value = t;
 				const i = localStorage.getItem("latencyTest:interval");
-				if (i !== null) { intervalInput.value = i; intervalLabel.textContent = i + "ms"; }
+				if (i !== null) {
+					intervalInput.value = i;
+					intervalLabel.textContent = i + "ms";
+				}
 				const th = localStorage.getItem("latencyTest:threshold");
 				if (th !== null) thresholdInput.value = th;
 			}
@@ -491,7 +493,7 @@
 					ctx.fillStyle = "#8b949e";
 					ctx.font = "14px system-ui";
 					ctx.textAlign = "center";
-					ctx.fillText("Warte auf Daten …", w / 2, h / 2);
+					ctx.fillText("Waiting for data …", w / 2, h / 2);
 					return;
 				}
 
@@ -580,7 +582,7 @@
 				// update rate info
 				const elapsed = maxT - minT;
 				const rate = elapsed > 0 ? (visible.length / elapsed).toFixed(0) : 0;
-				const label = selection ? "Auswahl" : "Letzte " + DEFAULT_WINDOW + "s";
+				const label = selection ? "Selection" : "Last " + DEFAULT_WINDOW + "s";
 				infoRate.textContent = `📊 ${visible.length} Datenpunkte · ~${rate}/s · ${label}`;
 			}
 
@@ -594,7 +596,7 @@
 					valCurrent.textContent = current.latency.toFixed(1) + " ms";
 					cardCurrent.className = "stat-card current " + (current.latency >= threshold ? "red" : "green");
 				} else if (current) {
-					valCurrent.textContent = "❌ Fehler";
+					valCurrent.textContent = "❌ Error";
 					cardCurrent.className = "stat-card current red";
 				}
 
@@ -634,7 +636,7 @@
 					overCtx.fillStyle = "#8b949e";
 					overCtx.font = "12px system-ui";
 					overCtx.textAlign = "center";
-					overCtx.fillText("Warte auf Daten …", w / 2, h / 2 + 4);
+					overCtx.fillText("Waiting for data …", w / 2, h / 2 + 4);
 					return;
 				}
 
@@ -763,20 +765,20 @@
 				ws = new WebSocket("ws://" + location.host + "/ws");
 
 				ws.onopen = () => {
-					setStatus("idle", "Verbunden");
+					setStatus("idle", "Connected");
 				};
 
 				ws.onmessage = (e) => {
 					const data = JSON.parse(e.data);
 
 					if (data.status === "started") {
-						setStatus("running", "Läuft → " + data.target);
+						setStatus("running", "Running → " + data.target);
 						setRunning(true);
 						points = [];
 						return;
 					}
 					if (data.status === "stopped") {
-						setStatus("idle", "Gestoppt");
+						setStatus("idle", "Stopped");
 						setRunning(false);
 						return;
 					}
@@ -795,20 +797,20 @@
 				};
 
 				ws.onclose = () => {
-					if (running) setStatus("error", "Verbindung getrennt");
-					else setStatus("idle", "Getrennt");
+					if (running) setStatus("error", "Connection lost");
+					else setStatus("idle", "Disconnected");
 					setRunning(false);
 				};
 
 				ws.onerror = () => {
-					setStatus("error", "WebSocket Fehler");
+					setStatus("error", "WebSocket Error");
 				};
 			}
 
 			btnStart.addEventListener("click", () => {
 				const target = targetInput.value.trim();
 				if (!target) {
-					alert("Bitte Ziel-URL eingeben");
+					alert("Please enter a target URL");
 					return;
 				}
 				if (!ws || ws.readyState !== WebSocket.OPEN) connect();
