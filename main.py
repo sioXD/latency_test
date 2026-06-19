@@ -1,3 +1,5 @@
+"""Real-time HTTP latency testing server with WebSocket streaming."""
+
 import asyncio
 import time
 from pathlib import Path
@@ -15,20 +17,22 @@ app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
 
 @app.get("/")
 async def root():
+    """Serve the main frontend page."""
     return HTMLResponse((HERE / "static" / "index.html").read_text())
 
 
 async def poll_loop(ws: WebSocket, client: httpx.AsyncClient, target: str, interval_ms: int):
+    """Continuously poll target and stream latency results via WebSocket."""
     try:
         while True:
             start = time.monotonic()
             t0 = time.monotonic()
             try:
-                resp = await client.get(target, timeout=max(interval_ms / 1000 * 2, 1.0))
+                await client.get(target, timeout=max(interval_ms / 1000 * 2, 1.0))
                 t1 = time.monotonic()
                 latency = round((t1 - t0) * 1000, 1)
                 await ws.send_json({"t": t0, "latency": latency})
-            except Exception as e:
+            except (httpx.HTTPError, asyncio.TimeoutError) as e:
                 await ws.send_json({"t": t0, "latency": None, "error": str(e)})
 
             elapsed = time.monotonic() - start
@@ -40,6 +44,7 @@ async def poll_loop(ws: WebSocket, client: httpx.AsyncClient, target: str, inter
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
+    """Handle WebSocket connections, start/stop polling on client commands."""
     await ws.accept()
     client = httpx.AsyncClient(timeout=5.0)
     poll_task: asyncio.Task | None = None
@@ -68,7 +73,9 @@ async def websocket_endpoint(ws: WebSocket):
 
                 target = new_target
                 poll_task = asyncio.create_task(poll_loop(ws, client, target, interval_ms))
-                await ws.send_json({"status": "started", "target": target, "interval_ms": interval_ms})
+                await ws.send_json(
+                    {"status": "started", "target": target, "interval_ms": interval_ms}
+                )
 
             elif action == "stop":
                 if poll_task is not None:
