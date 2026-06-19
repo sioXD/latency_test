@@ -18,6 +18,8 @@ Real‑time HTTP latency monitoring with a live chart and configurable threshold
 
 ## Getting Started
 
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
 ```bash
 uv run python main.py
 ```
